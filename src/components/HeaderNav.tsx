@@ -6,12 +6,18 @@ import { cn } from "@/lib/utils";
 import { ChevronDownIcon, ChevronUpIcon } from "@/components/icons";
 import { navLinks } from "@/types/site-content";
 
-function Logo({ className }: { className?: string }) {
+interface LogoProps {
+  logoUrl: string;
+  siteName: string;
+  className?: string;
+}
+
+function Logo({ logoUrl, siteName, className }: LogoProps) {
   return (
     <span className={cn("relative block h-7 w-[79px]", className)}>
       <Image
-        src="/images/logo/logo@1x.png"
-        alt="Marina Starke"
+        src={logoUrl}
+        alt={siteName}
         width={79}
         height={28}
         className="h-7 w-auto object-contain"
@@ -20,7 +26,12 @@ function Logo({ className }: { className?: string }) {
   );
 }
 
-export function HeaderNav() {
+interface HeaderNavProps {
+  logoUrl: string;
+  siteName: string;
+}
+
+export function HeaderNav({ logoUrl, siteName }: HeaderNavProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const closeMenu = () => setIsOpen(false);
@@ -30,7 +41,7 @@ export function HeaderNav() {
     <header className="fixed inset-x-0 top-0 z-[310] bg-background">
       <div className="flex flex-col items-center justify-between gap-2 px-6 py-4 md:px-10 lg:px-16 min-[951px]:flex-row min-[951px]:gap-0 min-[951px]:py-8">
         <a href="#" className="order-2 min-[951px]:order-1">
-          <Logo />
+          <Logo logoUrl={logoUrl} siteName={siteName} />
         </a>
 
         <nav className="hidden min-[951px]:order-2 min-[951px]:flex">
@@ -85,7 +96,7 @@ export function HeaderNav() {
             ))}
           </ul>
           <div className="flex justify-center pb-6">
-            <Logo />
+            <Logo logoUrl={logoUrl} siteName={siteName} />
           </div>
         </div>
       )}

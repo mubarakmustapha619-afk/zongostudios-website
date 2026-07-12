@@ -5,6 +5,22 @@ export type PortfolioCategory =
   | "narrative"
   | "short";
 
+export const CATEGORY_LABELS: Record<PortfolioCategory, string> = {
+  "feature-episodic": "FEATURE & EPISODIC",
+  commercial: "COMMERCIAL",
+  "music-video": "MUSIC VIDEO",
+  narrative: "NARRATIVE",
+  short: "SHORT",
+};
+
+export const ALL_CATEGORIES: PortfolioCategory[] = [
+  "feature-episodic",
+  "commercial",
+  "music-video",
+  "narrative",
+  "short",
+];
+
 export interface PortfolioItem {
   id: string;
   title: string;

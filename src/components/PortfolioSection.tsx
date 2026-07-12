@@ -4,17 +4,20 @@ import { useMemo, useState } from "react";
 import { FilterBar } from "@/components/FilterBar";
 import { PortfolioCard } from "@/components/PortfolioCard";
 import { VideoLightbox } from "@/components/VideoLightbox";
-import { portfolioItems } from "@/types/portfolio-data";
 import type { PortfolioCategory, PortfolioItem } from "@/types/portfolio";
 
-export function PortfolioSection() {
+interface PortfolioSectionProps {
+  items: PortfolioItem[];
+}
+
+export function PortfolioSection({ items: portfolioItems }: PortfolioSectionProps) {
   const [activeFilter, setActiveFilter] = useState<PortfolioCategory | "all">("all");
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
 
   const visibleItems = useMemo(() => {
     if (activeFilter === "all") return portfolioItems;
     return portfolioItems.filter((item) => item.categories.includes(activeFilter));
-  }, [activeFilter]);
+  }, [activeFilter, portfolioItems]);
 
   const handlePlay = (item: PortfolioItem) => {
     if (item.videoUrl) setActiveVideo(item.videoUrl);

@@ -1,19 +1,12 @@
 import Image from "next/image";
-import type { PortfolioCategory, PortfolioItem } from "@/types/portfolio";
+import type { PortfolioItem } from "@/types/portfolio";
+import { CATEGORY_LABELS } from "@/types/portfolio";
 import { EyeIcon, VideoBadgeIcon } from "@/components/icons";
 
 interface PortfolioCardProps {
   item: PortfolioItem;
   onPlay: (item: PortfolioItem) => void;
 }
-
-const CATEGORY_LABELS: Record<PortfolioCategory, string> = {
-  "feature-episodic": "FEATURE & EPISODIC",
-  commercial: "COMMERCIAL",
-  "music-video": "MUSIC VIDEO",
-  narrative: "NARRATIVE",
-  short: "SHORT",
-};
 
 export function PortfolioCard({ item, onPlay }: PortfolioCardProps) {
   const primaryCategory = item.categories[0];

@@ -1,6 +1,11 @@
 import { representation } from "@/types/site-content";
 
-export function ContactSection() {
+interface ContactSectionProps {
+  email?: string;
+  phone?: string;
+}
+
+export function ContactSection({ email, phone }: ContactSectionProps) {
   return (
     <section
       id="contact"
@@ -27,20 +32,40 @@ export function ContactSection() {
             </a>
             {rep.contactName && <> | {rep.contactName}</>}
             {" | "}
-            {rep.emails.map((email, i) => (
-              <span key={email.href}>
+            {rep.emails.map((repEmail, i) => (
+              <span key={repEmail.href}>
                 {i > 0 && " "}
                 <a
-                  href={email.href}
+                  href={repEmail.href}
                   className="text-sm tracking-[2px] uppercase text-accent-gold transition-opacity hover:opacity-75"
                 >
-                  {email.label}
+                  {repEmail.label}
                 </a>
               </span>
             ))}
           </p>
         ))}
       </div>
+      {(email || phone) && (
+        <div className="mx-auto mt-8 flex max-w-2xl flex-col gap-2">
+          {email && (
+            <a
+              href={`mailto:${email}`}
+              className="text-sm tracking-[2px] uppercase text-accent-gold transition-opacity hover:opacity-75"
+            >
+              {email}
+            </a>
+          )}
+          {phone && (
+            <a
+              href={`tel:${phone.replace(/[^+\d]/g, "")}`}
+              className="text-sm tracking-[2px] uppercase text-muted-foreground transition-opacity hover:opacity-75"
+            >
+              {phone}
+            </a>
+          )}
+        </div>
+      )}
     </section>
   );
 }

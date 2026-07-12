@@ -14,8 +14,11 @@ const inconsolata = Inconsolata({
   weight: ["300", "400", "700"],
 });
 
+// Overridden per-request on the homepage via `generateMetadata`, which reads
+// the editable site name/tagline. This static fallback covers other routes
+// (e.g. /admin) so metadata resolution never depends on Blob storage.
 export const metadata: Metadata = {
-  title: "MARINA STARKE – COLORIST",
+  title: "Marina Starke – Colorist",
   description:
     "Marina Starke is a colorist based in Berlin working across feature film, episodic, commercial, and music video.",
   icons: {

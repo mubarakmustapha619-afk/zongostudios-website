@@ -1,5 +1,6 @@
 import { LinkedinIcon, VimeoIcon, InstagramIcon } from "@/components/icons";
-import { socialLinks, copyright } from "@/types/site-content";
+import { copyright } from "@/types/site-content";
+import type { ContactSocialLink } from "@/types/site-data";
 
 const iconMap = {
   linkedin: LinkedinIcon,
@@ -7,7 +8,11 @@ const iconMap = {
   instagram: InstagramIcon,
 };
 
-export function Footer() {
+interface FooterProps {
+  socialLinks: ContactSocialLink[];
+}
+
+export function Footer({ socialLinks }: FooterProps) {
   return (
     <footer className="border-t border-border py-10 px-6 text-center">
       <div className="flex items-center justify-center gap-3 mb-4">
