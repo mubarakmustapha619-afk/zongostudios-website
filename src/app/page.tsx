@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { HeaderNav } from "@/components/HeaderNav";
 import { PortfolioSection } from "@/components/PortfolioSection";
 import { ContactSection } from "@/components/ContactSection";
@@ -21,7 +22,9 @@ export default async function Home() {
     <>
       <HeaderNav logoUrl={site.logoUrl} siteName={site.name} />
       <main>
-        <PortfolioSection items={portfolioItems} />
+        <Suspense fallback={null}>
+          <PortfolioSection items={portfolioItems} />
+        </Suspense>
         <ContactSection email={contact.email} phone={contact.phone} />
         <InstagramSection />
       </main>
