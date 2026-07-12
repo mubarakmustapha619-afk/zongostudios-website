@@ -24,20 +24,27 @@ function defaultSiteData(): SiteData {
   };
 }
 
-async function findSiteDataUrl(): Promise<string | null> {
+async function findSiteDataBlob(): Promise<{ url: string; uploadedAt: Date } | null> {
   const { blobs } = await list({ prefix: SITE_DATA_PATHNAME, limit: 1 });
-  return blobs.find((blob) => blob.pathname === SITE_DATA_PATHNAME)?.url ?? null;
+  const match = blobs.find((blob) => blob.pathname === SITE_DATA_PATHNAME);
+  return match ? { url: match.url, uploadedAt: match.uploadedAt } : null;
 }
 
 export const getSiteData = cache(async (): Promise<SiteData> => {
-  const url = await findSiteDataUrl();
-  if (!url) {
+  const blob = await findSiteDataBlob();
+  if (!blob) {
     const initial = defaultSiteData();
     await saveSiteData(initial);
     return initial;
   }
 
-  const response = await fetch(url, { cache: "no-store" });
+  // Vercel Blob serves this URL through a CDN with a cache floor of 60s
+  // (see cacheControlMaxAge below), so overwriting the blob in place doesn't
+  // purge already-cached edges. Busting with the blob's own uploadedAt
+  // guarantees a fresh fetch exactly when the content actually changes,
+  // while still allowing the CDN to serve repeat reads of the same version.
+  const bustedUrl = `${blob.url}?v=${blob.uploadedAt.getTime()}`;
+  const response = await fetch(bustedUrl, { cache: "no-store" });
   if (!response.ok) {
     throw new Error(`Failed to load site data (${response.status})`);
   }
@@ -50,6 +57,9 @@ export async function saveSiteData(data: SiteData): Promise<void> {
     contentType: "application/json",
     addRandomSuffix: false,
     allowOverwrite: true,
+    // 60 seconds is the minimum Vercel Blob allows; kept low (rather than the
+    // one-month default) since this file is overwritten on every admin edit.
+    cacheControlMaxAge: 60,
   });
 }
 
