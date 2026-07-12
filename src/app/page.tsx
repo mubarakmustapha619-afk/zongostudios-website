@@ -1,9 +1,21 @@
+import { HeaderNav } from "@/components/HeaderNav";
+import { PortfolioSection } from "@/components/PortfolioSection";
+import { ContactSection } from "@/components/ContactSection";
+import { InstagramSection } from "@/components/InstagramSection";
+import { Footer } from "@/components/Footer";
+import { BackToTop } from "@/components/BackToTop";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <p className="text-muted-foreground">
-        Clone target not yet built. Run <code className="font-mono text-foreground">/clone-website</code> to start.
-      </p>
-    </main>
+    <>
+      <HeaderNav />
+      <main>
+        <PortfolioSection />
+        <ContactSection />
+        <InstagramSection />
+      </main>
+      <Footer />
+      <BackToTop />
+    </>
   );
 }
