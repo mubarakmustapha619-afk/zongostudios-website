@@ -6,19 +6,17 @@ import { EyeIcon, VideoBadgeIcon } from "@/components/icons";
 
 interface PortfolioCardProps {
   item: PortfolioItem;
-  onPlay: (item: PortfolioItem) => void;
 }
 
-export function PortfolioCard({ item, onPlay }: PortfolioCardProps) {
+export function PortfolioCard({ item }: PortfolioCardProps) {
   const primaryCategory = item.categories[0];
   const categoryLabel = primaryCategory ? CATEGORY_LABELS[primaryCategory] : null;
 
   return (
     <div className="group relative overflow-hidden">
-      <button
-        type="button"
-        onClick={() => onPlay(item)}
-        aria-label={`Play ${item.title}`}
+      <Link
+        href={`/work/${item.id}`}
+        aria-label={`View ${item.title}`}
         className="absolute inset-0 z-10"
       />
       <Image
@@ -36,7 +34,7 @@ export function PortfolioCard({ item, onPlay }: PortfolioCardProps) {
           <EyeIcon className="h-6 w-6 text-foreground" />
         </div>
       </div>
-      <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-6 text-center opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center opacity-0 transition-opacity duration-500 group-hover:opacity-100">
         <span className="text-[11px] tracking-[3px] text-black uppercase">
           {item.title}
         </span>
@@ -45,12 +43,6 @@ export function PortfolioCard({ item, onPlay }: PortfolioCardProps) {
             {categoryLabel}
           </span>
         )}
-        <Link
-          href={`/work/${item.id}`}
-          className="pointer-events-auto mt-3 text-[11px] tracking-[3px] uppercase text-accent-gold underline-offset-4 hover:underline"
-        >
-          View Project
-        </Link>
       </div>
     </div>
   );
