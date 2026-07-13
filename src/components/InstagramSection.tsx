@@ -30,7 +30,7 @@ export function InstagramSection() {
         className="flex flex-col items-center gap-3 text-center mb-10"
       >
         <Image
-          src="/images/instagram/avatar.webp"
+          src="/images/instagram/avatar.jpg"
           alt={instagramBio.handle}
           width={56}
           height={56}

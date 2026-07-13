@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { getVideoEmbedUrl } from "@/components/VideoLightbox";
+import { cn } from "@/lib/utils";
 import { ALL_CATEGORIES, CATEGORY_LABELS } from "@/types/portfolio";
 import type { PortfolioCategory, PortfolioItem } from "@/types/portfolio";
 
@@ -11,6 +12,54 @@ interface PortfolioItemFormProps {
   item?: PortfolioItem;
   onSaved: (item: PortfolioItem) => void;
   onCancel?: () => void;
+}
+
+async function uploadVideoToYouTube(
+  file: File,
+  title: string,
+  onProgress: (percent: number) => void
+): Promise<string> {
+  const sessionResponse = await fetch("/api/admin/youtube/upload-session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title,
+      fileSizeBytes: file.size,
+      mimeType: file.type || "video/mp4",
+    }),
+  });
+
+  if (!sessionResponse.ok) {
+    const data = await sessionResponse.json().catch(() => null);
+    throw new Error(data?.error || "Failed to start YouTube upload session.");
+  }
+
+  const { uploadUrl } = await sessionResponse.json();
+
+  return new Promise<string>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", uploadUrl, true);
+    xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        onProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          resolve(`https://youtu.be/${data.id}`);
+        } catch {
+          reject(new Error("Failed to parse YouTube's response."));
+        }
+      } else {
+        reject(new Error(`YouTube upload failed (${xhr.status}).`));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Network error during upload."));
+    xhr.send(file);
+  });
 }
 
 export function PortfolioItemForm({ item, onSaved, onCancel }: PortfolioItemFormProps) {
@@ -26,12 +75,55 @@ export function PortfolioItemForm({ item, onSaved, onCancel }: PortfolioItemForm
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [videoMode, setVideoMode] = useState<"link" | "upload">("link");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [youtubeConnected, setYoutubeConnected] = useState<boolean | null>(null);
+
   useEffect(() => {
     if (!imageFile) return;
     const objectUrl = URL.createObjectURL(imageFile);
     setImagePreview(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
   }, [imageFile]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/youtube/status")
+      .then((res) => (res.ok ? res.json() : { connected: false }))
+      .then((data) => {
+        if (!cancelled) setYoutubeConnected(Boolean(data.connected));
+      })
+      .catch(() => {
+        if (!cancelled) setYoutubeConnected(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleUploadVideo = async () => {
+    if (!videoFile) return;
+    setError(null);
+    setIsUploadingVideo(true);
+    setUploadProgress(0);
+    try {
+      const url = await uploadVideoToYouTube(
+        videoFile,
+        title.trim() || "Untitled upload",
+        setUploadProgress
+      );
+      setVideoUrl(url);
+      setVideoMode("link");
+      setVideoFile(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload video.");
+    } finally {
+      setIsUploadingVideo(false);
+      setUploadProgress(null);
+    }
+  };
 
   const toggleCategory = (category: PortfolioCategory) => {
     setCategories((prev) => {
@@ -144,24 +236,103 @@ export function PortfolioItemForm({ item, onSaved, onCancel }: PortfolioItemForm
       </div>
 
       <div className="mt-4">
-        <label htmlFor="videoUrl" className="text-sm font-medium text-foreground">
-          Video URL (YouTube or Vimeo)
-        </label>
-        <input
-          id="videoUrl"
-          value={videoUrl}
-          onChange={(event) => setVideoUrl(event.target.value)}
-          placeholder="https://youtu.be/… or https://vimeo.com/…"
-          className="mt-1.5 w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/50"
-        />
-        {videoUrlError && (
-          <p className="mt-1 text-xs text-destructive">
-            This doesn&apos;t look like a valid YouTube or Vimeo link.
-          </p>
+        <span className="text-sm font-medium text-foreground">Video</span>
+        <div className="mt-2 flex gap-4 border-b border-border text-xs">
+          <button
+            type="button"
+            onClick={() => setVideoMode("link")}
+            className={cn(
+              "-mb-px border-b-2 pb-1.5 font-medium uppercase tracking-wide",
+              videoMode === "link"
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Paste a link
+          </button>
+          <button
+            type="button"
+            onClick={() => setVideoMode("upload")}
+            className={cn(
+              "-mb-px border-b-2 pb-1.5 font-medium uppercase tracking-wide",
+              videoMode === "upload"
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Upload a file
+          </button>
+        </div>
+
+        {videoMode === "link" && (
+          <div className="mt-3">
+            <label htmlFor="videoUrl" className="sr-only">
+              Video URL (YouTube or Vimeo)
+            </label>
+            <input
+              id="videoUrl"
+              value={videoUrl}
+              onChange={(event) => setVideoUrl(event.target.value)}
+              placeholder="https://youtu.be/… or https://vimeo.com/…"
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/50"
+            />
+            {videoUrlError && (
+              <p className="mt-1 text-xs text-destructive">
+                This doesn&apos;t look like a valid YouTube or Vimeo link.
+              </p>
+            )}
+            {embedPreview && (
+              <div className="mt-3 aspect-video w-full max-w-xs overflow-hidden rounded-md">
+                <iframe src={embedPreview} className="h-full w-full" allow="fullscreen" />
+              </div>
+            )}
+          </div>
         )}
-        {embedPreview && (
-          <div className="mt-3 aspect-video w-full max-w-xs overflow-hidden rounded-md">
-            <iframe src={embedPreview} className="h-full w-full" allow="fullscreen" />
+
+        {videoMode === "upload" && (
+          <div className="mt-3">
+            {youtubeConnected === false && (
+              <p className="text-xs text-muted-foreground">
+                YouTube isn&apos;t connected yet. Connect it under Site Settings first.
+              </p>
+            )}
+            {youtubeConnected !== false && (
+              <>
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={(event) => setVideoFile(event.target.files?.[0] ?? null)}
+                  disabled={isUploadingVideo}
+                  className="text-sm text-muted-foreground"
+                />
+                <div className="mt-2 flex items-center gap-3">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={!videoFile || isUploadingVideo}
+                    onClick={handleUploadVideo}
+                  >
+                    {isUploadingVideo
+                      ? `Uploading… ${uploadProgress ?? 0}%`
+                      : "Upload to YouTube"}
+                  </Button>
+                  {videoUrl && !isUploadingVideo && (
+                    <span className="text-xs text-muted-foreground">
+                      Uploaded: {videoUrl}
+                    </span>
+                  )}
+                </div>
+                {isUploadingVideo && (
+                  <div className="mt-2 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full bg-foreground transition-all"
+                      style={{ width: `${uploadProgress ?? 0}%` }}
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>

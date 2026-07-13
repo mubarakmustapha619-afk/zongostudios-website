@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { YouTubeConnectionCard } from "@/components/admin/YouTubeConnectionCard";
 import type { SiteSettings } from "@/types/site-data";
 
 interface SiteSettingsAdminProps {
@@ -59,10 +60,11 @@ export function SiteSettingsAdmin({ site, onSiteChange }: SiteSettingsAdminProps
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-xl rounded-lg border border-border bg-card p-6"
-    >
+    <>
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-xl rounded-lg border border-border bg-card p-6"
+      >
       <div>
         <label htmlFor="siteName" className="text-sm font-medium text-foreground">
           Site name
@@ -123,6 +125,9 @@ export function SiteSettingsAdmin({ site, onSiteChange }: SiteSettingsAdminProps
       <Button type="submit" className="mt-6" disabled={isSubmitting}>
         {isSubmitting ? "Saving…" : "Save site settings"}
       </Button>
-    </form>
+      </form>
+
+      <YouTubeConnectionCard />
+    </>
   );
 }

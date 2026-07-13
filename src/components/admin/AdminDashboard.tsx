@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PortfolioAdmin } from "@/components/admin/PortfolioAdmin";
@@ -19,10 +19,18 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function AdminDashboard({ initialData }: { initialData: SiteData }) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("portfolio");
+  const searchParams = useSearchParams();
+  const youtubeStatus = searchParams.get("youtube");
+  const [tab, setTab] = useState<Tab>(youtubeStatus ? "site" : "portfolio");
   const [portfolioItems, setPortfolioItems] = useState(initialData.portfolioItems);
   const [contact, setContact] = useState(initialData.contact);
   const [site, setSite] = useState(initialData.site);
+
+  useEffect(() => {
+    if (!youtubeStatus) return;
+    const timeout = setTimeout(() => router.replace("/admin"), 4000);
+    return () => clearTimeout(timeout);
+  }, [youtubeStatus, router]);
 
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -38,6 +46,17 @@ export function AdminDashboard({ initialData }: { initialData: SiteData }) {
           Log out
         </Button>
       </div>
+
+      {youtubeStatus === "connected" && (
+        <p className="mt-4 rounded-md border border-border bg-card px-4 py-2 text-sm text-foreground">
+          YouTube connected successfully.
+        </p>
+      )}
+      {youtubeStatus === "error" && (
+        <p className="mt-4 rounded-md border border-border bg-card px-4 py-2 text-sm text-destructive">
+          Failed to connect YouTube. Please try again.
+        </p>
+      )}
 
       <nav className="mt-8 flex gap-2 border-b border-border">
         {TABS.map(({ id, label }) => (

@@ -47,3 +47,6 @@ next-env.d.ts
 
 # Local temp files
 temp/
+
+# Local content backups (safety snapshots before destructive admin actions)
+.backups/

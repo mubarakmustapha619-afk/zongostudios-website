@@ -1,10 +1,9 @@
 export const filterOptions = [
   { label: "All", value: "all" },
-  { label: "Feature & Episodic", value: "feature-episodic" },
-  { label: "Commercial", value: "commercial" },
-  { label: "Music Video", value: "music-video" },
-  { label: "Narrative", value: "narrative" },
-  { label: "Short", value: "short" },
+  { label: "Film", value: "film" },
+  { label: "Documentary", value: "documentary" },
+  { label: "Corporate", value: "corporate" },
+  { label: "Commercials", value: "commercials" },
 ] as const;
 
 export const navLinks = [
@@ -13,41 +12,10 @@ export const navLinks = [
   { label: "Instagram", href: "#instagram" },
 ] as const;
 
-export const representation = [
-  {
-    flag: "🇬🇧🇪🇺",
-    name: "Okay Studio",
-    href: "https://www.okaystudio.co.uk/",
-    emails: [{ label: "production@okaystudio.co.uk", href: "mailto:production@okaystudio.co.uk" }],
-  },
-  {
-    flag: "🇺🇸🇲🇽🇨🇦",
-    name: "Ethos Studio",
-    href: "https://ethos.studio/",
-    emails: [
-      { label: "eps@ethos.studio", href: "mailto:eps@ethos.studio" },
-      { label: "color@ethos.studio", href: "mailto:color@ethos.studio" },
-    ],
-  },
-  {
-    flag: "🌍",
-    prefix: "Feature & Episodic",
-    name: "MAP Berlin",
-    href: "https://m-a-p.berlin/",
-    contactName: "Doro Becker-Vogt",
-    emails: [{ label: "doro@m-a-p.berlin", href: "mailto:doro@m-a-p.berlin" }],
-  },
-];
-
 export const instagramBio = {
-  handle: "marinastarke.color",
-  lines: [
-    "🌙 colorist based in berlin (on a break from DMs)",
-    "🇬🇧🇪🇺• @okaystudio",
-    "🇺🇸🇲🇽🇨🇦• @ethos_studio",
-    "🌍 feature & episodic • @mapberlin",
-  ],
-  profileUrl: "https://www.instagram.com/marinastarke.color",
+  handle: "zongostudios",
+  lines: ["Reel creator", "Colorist 🎨", "Cinematographer 🎥", "🧵 zongostudios"],
+  profileUrl: "https://www.instagram.com/zongostudios/",
 };
 
 export const socialLinks = [

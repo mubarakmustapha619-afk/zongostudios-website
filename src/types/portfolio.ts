@@ -1,24 +1,17 @@
-export type PortfolioCategory =
-  | "feature-episodic"
-  | "commercial"
-  | "music-video"
-  | "narrative"
-  | "short";
+export type PortfolioCategory = "film" | "documentary" | "corporate" | "commercials";
 
 export const CATEGORY_LABELS: Record<PortfolioCategory, string> = {
-  "feature-episodic": "FEATURE & EPISODIC",
-  commercial: "COMMERCIAL",
-  "music-video": "MUSIC VIDEO",
-  narrative: "NARRATIVE",
-  short: "SHORT",
+  film: "FILM",
+  documentary: "DOCUMENTARY",
+  corporate: "CORPORATE",
+  commercials: "COMMERCIALS",
 };
 
 export const ALL_CATEGORIES: PortfolioCategory[] = [
-  "feature-episodic",
-  "commercial",
-  "music-video",
-  "narrative",
-  "short",
+  "film",
+  "documentary",
+  "corporate",
+  "commercials",
 ];
 
 export interface PortfolioItem {
