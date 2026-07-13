@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { PortfolioItem } from "@/types/portfolio";
 import { CATEGORY_LABELS } from "@/types/portfolio";
 import { EyeIcon, VideoBadgeIcon } from "@/components/icons";
@@ -35,7 +36,7 @@ export function PortfolioCard({ item, onPlay }: PortfolioCardProps) {
           <EyeIcon className="h-6 w-6 text-foreground" />
         </div>
       </div>
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+      <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-6 text-center opacity-0 transition-opacity duration-500 group-hover:opacity-100">
         <span className="text-[11px] tracking-[3px] text-black uppercase">
           {item.title}
         </span>
@@ -44,6 +45,12 @@ export function PortfolioCard({ item, onPlay }: PortfolioCardProps) {
             {categoryLabel}
           </span>
         )}
+        <Link
+          href={`/work/${item.id}`}
+          className="pointer-events-auto mt-3 text-[11px] tracking-[3px] uppercase text-accent-gold underline-offset-4 hover:underline"
+        >
+          View Project
+        </Link>
       </div>
     </div>
   );

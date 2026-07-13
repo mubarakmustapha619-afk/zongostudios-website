@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { getVideoEmbedUrl } from "@/components/VideoLightbox";
+import { getVideoEmbedUrl } from "@/lib/video-embed";
 import { cn } from "@/lib/utils";
 import { ALL_CATEGORIES, CATEGORY_LABELS } from "@/types/portfolio";
 import type { PortfolioCategory, PortfolioItem } from "@/types/portfolio";
@@ -81,12 +81,23 @@ export function PortfolioItemForm({ item, onSaved, onCancel }: PortfolioItemForm
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [youtubeConnected, setYoutubeConnected] = useState<boolean | null>(null);
 
+  const [existingStills, setExistingStills] = useState<string[]>(item?.stills ?? []);
+  const [stillsToRemove, setStillsToRemove] = useState<Set<string>>(new Set());
+  const [newStillFiles, setNewStillFiles] = useState<File[]>([]);
+  const [newStillPreviews, setNewStillPreviews] = useState<string[]>([]);
+
   useEffect(() => {
     if (!imageFile) return;
     const objectUrl = URL.createObjectURL(imageFile);
     setImagePreview(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
   }, [imageFile]);
+
+  useEffect(() => {
+    const urls = newStillFiles.map((file) => URL.createObjectURL(file));
+    setNewStillPreviews(urls);
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, [newStillFiles]);
 
   useEffect(() => {
     let cancelled = false;
@@ -123,6 +134,18 @@ export function PortfolioItemForm({ item, onSaved, onCancel }: PortfolioItemForm
       setIsUploadingVideo(false);
       setUploadProgress(null);
     }
+  };
+
+  const toggleRemoveStill = (url: string) => {
+    setStillsToRemove((prev) => {
+      const next = new Set(prev);
+      if (next.has(url)) {
+        next.delete(url);
+      } else {
+        next.add(url);
+      }
+      return next;
+    });
   };
 
   const toggleCategory = (category: PortfolioCategory) => {
@@ -168,6 +191,8 @@ export function PortfolioItemForm({ item, onSaved, onCancel }: PortfolioItemForm
       categories.forEach((category) => formData.append("categories", category));
       formData.set("videoUrl", videoUrl.trim());
       if (imageFile) formData.set("image", imageFile);
+      newStillFiles.forEach((file) => formData.append("stills", file));
+      stillsToRemove.forEach((url) => formData.append("removeStills", url));
 
       const response = await fetch(
         isEditing ? `/api/admin/portfolio/${item!.id}` : "/api/admin/portfolio",
@@ -181,7 +206,11 @@ export function PortfolioItemForm({ item, onSaved, onCancel }: PortfolioItemForm
       }
 
       const data = await response.json();
-      onSaved(data.item as PortfolioItem);
+      const savedItem = data.item as PortfolioItem;
+      onSaved(savedItem);
+      setExistingStills(savedItem.stills ?? []);
+      setStillsToRemove(new Set());
+      setNewStillFiles([]);
 
       if (!isEditing) {
         setTitle("");
@@ -352,6 +381,58 @@ export function PortfolioItemForm({ item, onSaved, onCancel }: PortfolioItemForm
             className="text-sm text-muted-foreground"
           />
         </div>
+      </div>
+
+      <div className="mt-4">
+        <span className="text-sm font-medium text-foreground">
+          Stills (shown on the project page)
+        </span>
+        <div className="mt-2 flex flex-wrap gap-3">
+          {existingStills.map((url) => {
+            const marked = stillsToRemove.has(url);
+            return (
+              <div key={url} className="relative h-20 w-20 overflow-hidden rounded-md border border-border">
+                <Image
+                  src={url}
+                  alt=""
+                  fill
+                  className={cn("object-cover", marked && "opacity-30")}
+                  unoptimized
+                />
+                <button
+                  type="button"
+                  onClick={() => toggleRemoveStill(url)}
+                  className="absolute inset-x-0 bottom-0 bg-black/70 py-0.5 text-[10px] font-medium uppercase text-white"
+                >
+                  {marked ? "Undo" : "Remove"}
+                </button>
+              </div>
+            );
+          })}
+          {newStillPreviews.map((url, i) => (
+            <div key={url} className="relative h-20 w-20 overflow-hidden rounded-md border border-border">
+              <Image src={url} alt="" fill className="object-cover" unoptimized />
+              <button
+                type="button"
+                onClick={() =>
+                  setNewStillFiles((prev) => prev.filter((_, index) => index !== i))
+                }
+                className="absolute inset-x-0 bottom-0 bg-black/70 py-0.5 text-[10px] font-medium uppercase text-white"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(event) =>
+            setNewStillFiles((prev) => [...prev, ...Array.from(event.target.files ?? [])])
+          }
+          className="mt-2 text-sm text-muted-foreground"
+        />
       </div>
 
       {error && <p className="mt-4 text-sm text-destructive">{error}</p>}

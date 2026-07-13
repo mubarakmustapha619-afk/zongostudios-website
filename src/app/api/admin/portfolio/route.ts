@@ -42,6 +42,11 @@ export async function POST(request: Request) {
 
   const image = await uploadImage(imageFile, "portfolio");
 
+  const stillFiles = formData
+    .getAll("stills")
+    .filter((value): value is File => value instanceof File && value.size > 0);
+  const stills = await Promise.all(stillFiles.map((file) => uploadImage(file, "stills")));
+
   const data = await getSiteData();
   const newItem: PortfolioItem = {
     id: crypto.randomUUID(),
@@ -49,6 +54,7 @@ export async function POST(request: Request) {
     categories,
     image,
     videoUrl: videoUrl || null,
+    stills,
   };
   data.portfolioItems = [newItem, ...data.portfolioItems];
   await saveSiteData(data);

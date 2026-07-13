@@ -20,6 +20,7 @@ export interface PortfolioItem {
   categories: PortfolioCategory[];
   image: string;
   videoUrl: string | null;
+  stills?: string[];
 }
 
 export interface FilterOption {

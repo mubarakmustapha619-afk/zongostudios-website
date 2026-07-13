@@ -60,6 +60,25 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     item.image = newImage;
   }
 
+  const removeStills = new Set(formData.getAll("removeStills").map(String));
+  if (removeStills.size > 0) {
+    const existingStills = item.stills ?? [];
+    const kept = existingStills.filter((url) => !removeStills.has(url));
+    const removed = existingStills.filter((url) => removeStills.has(url));
+    await Promise.all(removed.map((url) => deleteImageIfManaged(url)));
+    item.stills = kept;
+  }
+
+  const newStillFiles = formData
+    .getAll("stills")
+    .filter((value): value is File => value instanceof File && value.size > 0);
+  if (newStillFiles.length > 0) {
+    const uploaded = await Promise.all(
+      newStillFiles.map((file) => uploadImage(file, "stills"))
+    );
+    item.stills = [...(item.stills ?? []), ...uploaded];
+  }
+
   await saveSiteData(data);
   return NextResponse.json({ item });
 }
@@ -81,6 +100,7 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
   );
   await saveSiteData(data);
   await deleteImageIfManaged(item.image);
+  await Promise.all((item.stills ?? []).map((url) => deleteImageIfManaged(url)));
 
   return NextResponse.json({ ok: true });
 }

@@ -65,7 +65,7 @@ export async function saveSiteData(data: SiteData): Promise<void> {
 
 export async function uploadImage(
   file: File,
-  folder: "portfolio" | "logo"
+  folder: "portfolio" | "logo" | "stills"
 ): Promise<string> {
   const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const pathname = `images/${folder}/${crypto.randomUUID()}.${extension}`;
