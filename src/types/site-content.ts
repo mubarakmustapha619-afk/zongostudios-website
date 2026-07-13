@@ -24,4 +24,4 @@ export const socialLinks = [
   { label: "Instagram", href: "https://www.instagram.com/marinastarke.color", icon: "instagram" },
 ] as const;
 
-export const copyright = "Marina Starke © 2021 | Imprint";
+export const copyright = "Zongostudios © 2026 | Imprint";
